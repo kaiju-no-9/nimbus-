@@ -20,10 +20,10 @@
 
 <table>
 <tr>
-<td width="42%" valign="middle" align="center">
+<td width="50%" valign="middle" align="center">
 <img src="assets/tiny-server-flow.png" width="100%" alt="Tiny C server flowchart showing startup, parent listener, worker request handling, and 200 or 405 responses" />
 </td>
-<td width="58%" valign="middle">
+<td width="50%" valign="middle">
 
 <h2><samp>› a tiny server, end to end</samp></h2>
 
