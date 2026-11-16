@@ -20,11 +20,18 @@
 
 <table>
 <tr>
-<td width="56%" valign="middle">
+<td width="42%" valign="middle" align="center">
+<img src="assets/tiny-server-flow.png" width="100%" alt="Tiny C server flowchart showing startup, parent listener, worker request handling, and 200 or 405 responses" />
+</td>
+<td width="58%" valign="middle">
 
-<h2><samp>› what it does</samp></h2>
+<h2><samp>› a tiny server, end to end</samp></h2>
 
-<p>Tiny binds to <code>127.0.0.1:8080</code> and serves a small HTML page for <code>GET</code> requests. Other methods receive <code>405 Method Not Allowed</code>. It forks a worker for each connection, applies a five-second request timeout, and writes sanitized request details to stderr.</p>
+<p>Tiny is a small C web server for learning how an HTTP request moves through a server. It binds only to <code>127.0.0.1:8080</code>, accepts a connection, and forks a short-lived worker to handle it.</p>
+
+<p>The worker reads one request chunk with a five-second timeout and logs a sanitized request line. A <code>GET</code> receives the static HTML page; other methods receive <code>405 Method Not Allowed</code>. Each connection closes after the response.</p>
+
+<hr />
 
 <h2><samp>› run it</samp></h2>
 
@@ -33,47 +40,50 @@
 <pre><code>make
 ./tiny</code></pre>
 
-<p>Then open <a href="http://127.0.0.1:8080">127.0.0.1:8080</a>, or check it with curl:</p>
+<p>Open <a href="http://127.0.0.1:8080">127.0.0.1:8080</a>, or check both response paths:</p>
 
 <pre><code>curl -i http://127.0.0.1:8080/
 curl -i -X POST http://127.0.0.1:8080/</code></pre>
 
-</td>
-<td width="44%" align="center" valign="top">
-<img src="assets/tiny-server-flow.png" width="340" alt="Vertical flowchart showing the Tiny C web server startup, parent listener, forked child request handling, and 200 or 405 responses" />
+<p>Stop the server with <code>Ctrl+C</code>.</p>
+
+<hr />
+
+<h2><samp>› build options</samp></h2>
+
+<p>The Makefile enables compiler warnings, stack protection, and position-independent code. Linux builds also enable RELRO linker hardening. macOS skips Linux-specific linker flags.</p>
+
+<p>Optional sanitizer build:</p>
+
+<pre><code>cc -g -O1 -Wall -Wextra \
+  -fsanitize=address,undefined \
+  -fno-omit-frame-pointer \
+  -o tiny-asan tiny.c
+./tiny-asan</code></pre>
+
+<hr />
+
+<h2><samp>› Fedora systemd</samp></h2>
+
+<p>The included <code>tiny.service</code> runs as a dynamic unprivileged user in a systemd sandbox. After building on Fedora:</p>
+
+<pre><code>sudo install -m 0755 tiny /usr/local/bin/tiny
+sudo install -m 0644 tiny.service /etc/systemd/system/tiny.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now tiny
+systemctl status tiny</code></pre>
+
+<hr />
+
+<h2><samp>› network boundary</samp></h2>
+
+<p>The server does not serve files or bind to your LAN address. For public access, use a Cloudflare Tunnel and keep port <code>8080</code> closed at the router.</p>
 </td>
 </tr>
 </table>
 
-## <samp>› request flow</samp>
-
-The diagram shows the lifecycle of a request: the parent accepts a client, forks a worker, and closes its copy of the client socket. The worker reads one request chunk, logs it, returns a response, then exits. The server handles one request per connection and ignores the requested URL path.
-
-## <samp>› build options</samp>
-
-The Makefile enables compiler warnings, stack protection, and position-independent code. On Linux it also enables RELRO linker hardening. On macOS it skips Linux-specific linker flags so the project can be built locally.
-
-```sh
-# Optional sanitizer build
-cc -g -O1 -Wall -Wextra -fsanitize=address,undefined \
-  -fno-omit-frame-pointer -o tiny-asan tiny.c
-./tiny-asan
-```
-
-## <samp>› Fedora systemd</samp>
-
-The included [`tiny.service`](tiny.service) runs the server as a dynamic unprivileged user with a systemd sandbox. On Fedora, after building:
-
-```sh
-sudo install -m 0755 tiny /usr/local/bin/tiny
-sudo install -m 0644 tiny.service /etc/systemd/system/tiny.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now tiny
-systemctl status tiny
-```
-
 ## <samp>› limits and deployment</samp>
 
-This is a learning project, not a general-purpose HTTP server. It supports IPv4 and `GET`, reads only one request chunk, ignores paths, closes each connection, and forks per connection. It should stay on loopback. For public access, use a Cloudflare Tunnel as described in the local plan; do not forward port 8080 from your router. The server trusts `CF-Connecting-IP` only for logging, so use that value only when the tunnel is the sole route to the server.
+This is a learning project, not a general-purpose HTTP server. It supports IPv4 and `GET`, reads only one request chunk, ignores paths, closes each connection, and forks per connection. It should stay on loopback. The server trusts `CF-Connecting-IP` only for logging, so use that value only when the tunnel is the sole route to the server.
 
 <p align="center"><samp>C · POSIX sockets · HTTP · systemd</samp></p>
