@@ -16,6 +16,12 @@
 
 <p align="center"><samp>ʟᴇᴀʀɴɪɴɢ ᴘʀᴏᴊᴇᴄᴛ · ꜰᴏʀᴋ-ᴘᴇʀ-ᴄᴏɴɴᴇᴄᴛɪᴏɴ · ᴜꜱᴇʀ-ʀᴜɴ ʟᴏᴄᴀʟʟʏ</samp></p>
 
+## <samp>› a tiny server, end to end</samp>
+
+Tiny is a small C web server for learning how an HTTP request moves through a server. It binds only to `127.0.0.1:8080`, accepts a connection, and forks a short-lived worker to handle it.
+
+The worker reads one request chunk with a five-second timeout and logs a sanitized request line. `GET /` serves the personal landing page, and `GET /noise-14-mono.jpg` serves its background image. Unknown paths return `404`; other methods receive `405 Method Not Allowed`. Each connection closes after the response.
+
 ---
 
 <table>
@@ -24,14 +30,6 @@
 <img src="assets/tiny-server-flow.png" width="620" height="1944" alt="Tiny C server flowchart showing startup, parent listener, worker request handling, and 200 or 405 responses" />
 </td>
 <td width="58%" valign="middle">
-
-<h2><samp>› a tiny server, end to end</samp></h2>
-
-<p>Tiny is a small C web server for learning how an HTTP request moves through a server. It binds only to <code>127.0.0.1:8080</code>, accepts a connection, and forks a short-lived worker to handle it.</p>
-
-<p>The worker reads one request chunk with a five-second timeout and logs a sanitized request line. A <code>GET</code> receives the static HTML page; other methods receive <code>405 Method Not Allowed</code>. Each connection closes after the response.</p>
-
-<hr />
 
 <h2><samp>› run it</samp></h2>
 
@@ -61,29 +59,33 @@ curl -i -X POST http://127.0.0.1:8080/</code></pre>
   -o tiny-asan tiny.c
 ./tiny-asan</code></pre>
 
-<hr />
-
-<h2><samp>› Fedora systemd</samp></h2>
-
-<p>The included <code>tiny.service</code> runs as a dynamic unprivileged user in a systemd sandbox. After building on Fedora:</p>
-
-<pre><code>sudo install -m 0755 tiny /usr/local/bin/tiny
-sudo install -m 0644 tiny.service /etc/systemd/system/tiny.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now tiny
-systemctl status tiny</code></pre>
-
-<hr />
-
-<h2><samp>› network boundary</samp></h2>
-
-<p>The server does not serve files or bind to your LAN address. For public access, use a Cloudflare Tunnel and keep port <code>8080</code> closed at the router.</p>
 </td>
 </tr>
 </table>
 
+## <samp>› Fedora systemd</samp>
+
+The included `tiny.service` runs as a dynamic unprivileged user in a systemd sandbox. After building on Fedora:
+
+```bash
+sudo install -d -m 0755 /usr/local/share/tiny/assets
+sudo install -m 0755 tiny /usr/local/share/tiny/tiny
+sudo install -m 0644 index.html /usr/local/share/tiny/index.html
+sudo install -m 0644 assets/noise-14-mono.jpg /usr/local/share/tiny/assets/noise-14-mono.jpg
+sudo install -m 0644 tiny.service /etc/systemd/system/tiny.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now tiny
+systemctl status tiny
+```
+
+---
+
+## <samp>› network boundary</samp>
+
+The server binds only to `127.0.0.1` and serves the landing page and its background image. For public access, use a Cloudflare Tunnel and keep port `8080` closed at the router.
+
 ## <samp>› limits and deployment</samp>
 
-This is a learning project, not a general-purpose HTTP server. It supports IPv4 and `GET`, reads only one request chunk, ignores paths, closes each connection, and forks per connection. It should stay on loopback. The server trusts `CF-Connecting-IP` only for logging, so use that value only when the tunnel is the sole route to the server.
+This is a learning project, not a general-purpose HTTP server. It supports IPv4 and `GET`, reads only one request chunk, serves only the landing page and its background image, closes each connection, and forks per connection. It should stay on loopback. The server trusts `CF-Connecting-IP` only for logging, so use that value only when the tunnel is the sole route to the server.
 
 <p align="center"><samp>C · POSIX sockets · HTTP · systemd</samp></p>

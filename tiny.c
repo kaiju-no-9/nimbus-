@@ -15,13 +15,6 @@
 #define TINY_PORT 8080
 #endif
 
-static const char body[] =
-    "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
-    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-    "<title>Tiny C Server</title><body><main>"
-    "<h1>It works.</h1><p>Served by a tiny C program.</p>"
-    "</main></body></html>\n";
-
 static void clean(char *dst, size_t cap, const char *src) {
     size_t i = 0;
     if (!cap) return;
@@ -67,18 +60,45 @@ static void respond(int client, const struct sockaddr_in *peer) {
     }
     fprintf(stderr, "peer=%s client=%s req=\"%s\"\n", peer_ip, client_ip, req_line);
 
-    if (n >= 4 && memcmp(req, "GET ", 4) == 0) {
-        char response[1024];
+    if (n >= 5 && memcmp(req, "GET /", 5) == 0) {
+        const char *path = "index.html";
+        const char *type = "text/html; charset=utf-8";
+        if (strncmp(req, "GET /noise-14-mono.jpg ", 23) == 0) {
+            path = "assets/noise-14-mono.jpg";
+            type = "image/jpeg";
+        } else if (strncmp(req, "GET / ", 6) != 0 &&
+                   strncmp(req, "GET /?", 6) != 0) {
+            static const char not_found[] =
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n"
+                "Connection: close\r\n\r\n";
+            (void)write_all(client, not_found, sizeof not_found - 1);
+            return;
+        }
+        FILE *file = fopen(path, "rb");
+        if (!file) {
+            static const char unavailable[] =
+                "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n"
+                "Connection: close\r\n\r\n";
+            (void)write_all(client, unavailable, sizeof unavailable - 1);
+            return;
+        }
+        if (fseek(file, 0, SEEK_END) != 0) { fclose(file); return; }
+        long size = ftell(file);
+        if (size < 0 || fseek(file, 0, SEEK_SET) != 0) { fclose(file); return; }
+        char response[512];
         int len = snprintf(response, sizeof response,
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html; charset=utf-8\r\n"
-            "Content-Length: %zu\r\n"
-            "Connection: close\r\n"
+            "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n"
+            "Content-Length: %ld\r\nConnection: close\r\n"
             "Cache-Control: public, max-age=300\r\n"
-            "X-Content-Type-Options: nosniff\r\n\r\n%s",
-            sizeof body - 1, body);
-        if (len > 0 && (size_t)len < sizeof response)
-            (void)write_all(client, response, (size_t)len);
+            "X-Content-Type-Options: nosniff\r\n\r\n", type, size);
+        if (len > 0 && (size_t)len < sizeof response &&
+            write_all(client, response, (size_t)len) == 0) {
+            char chunk[8192];
+            size_t got;
+            while ((got = fread(chunk, 1, sizeof chunk, file)) > 0)
+                if (write_all(client, chunk, got) < 0) break;
+        }
+        fclose(file);
     } else {
         static const char method_not_allowed[] =
             "HTTP/1.1 405 Method Not Allowed\r\n"

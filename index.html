@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <title>Kaiju-no-9</title>
+  <style>
+    :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      color: #f3f3f3;
+      background: #080808 url("/noise-14-mono.jpg") center center / cover fixed no-repeat;
+    }
+    body::before { content: ""; position: fixed; inset: 0; background: linear-gradient(90deg, #050505a8, #05050542 50%, #050505a8), linear-gradient(0deg, #05050570, transparent 55%, #05050570); }
+    main { position: relative; width: min(92vw, 700px); text-align: center; padding: 3rem 1.5rem; transform: translateY(-10vh); }
+    .eyebrow { color: #aaa; font-size: .7rem; letter-spacing: .24em; text-transform: uppercase; }
+    .links { display: inline-flex; align-items: center; gap: clamp(.65rem, 3vw, 1.35rem); border-block: 1px solid #ffffff5c; padding: 1rem .2rem; }
+    a { color: #e6e6e6; text-decoration: none; font-size: .85rem; letter-spacing: .08em; transition: color .2s ease; }
+    a:hover, a:focus-visible { color: white; text-decoration: underline; text-underline-offset: .35rem; }
+    .dot { color: #888; font-size: .7rem; }
+    @media (max-width: 480px) { body { background-position: 54% center; } main { padding-inline: .5rem; transform: translateY(-12vh); } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow"><samp>Personal links</samp></div>
+    <nav class="links" aria-label="Social links">
+     
+      <a href="https://x.com/kumar_nish98725" target="_blank" rel="noopener noreferrer">x</a>
+      <span class="dot" aria-hidden="true">•</span>
+      <a href="https://www.linkedin.com/in/nishchay-kumar-63bb92325/?isSelfProfile=true" target="_blank" rel="noopener noreferrer">linkedin</a>
+    </nav>
+  </main>
+</body>
+</html>

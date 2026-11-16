@@ -3,7 +3,8 @@ Description=Tiny C web server
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/tiny
+WorkingDirectory=/usr/local/share/tiny
+ExecStart=/usr/local/share/tiny/tiny
 Restart=on-failure
 RestartSec=2
 DynamicUser=yes
