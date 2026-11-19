@@ -84,8 +84,3 @@ systemctl status tiny
 
 The server binds only to `127.0.0.1` and serves the landing page and its background image. For public access, use a Cloudflare Tunnel and keep port `8080` closed at the router.
 
-## <samp>› limits and deployment</samp>
-
-This is a learning project, not a general-purpose HTTP server. It supports IPv4 and `GET`, reads only one request chunk, serves only the landing page and its background image, closes each connection, and forks per connection. It should stay on loopback. The server trusts `CF-Connecting-IP` only for logging, so use that value only when the tunnel is the sole route to the server.
-
-<p align="center"><samp>C · POSIX sockets · HTTP · systemd</samp></p>
